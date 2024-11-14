@@ -59,7 +59,7 @@ func (h *HostsfilesProvider) loadFromDisk() {
 
 	file, err := os.Open(h.path)
 	if err != nil {
-		fmt.Printf("Warn: failed to open hosts file for reading: %v\n", err)
+		log.Printf("Warn: failed to open hosts file for reading: %v\n", err)
 		return
 	}
 	defer file.Close()
@@ -72,7 +72,7 @@ func (h *HostsfilesProvider) loadFromDisk() {
 		}
 		parts := strings.Fields(line)
 		if len(parts) < 2 {
-			fmt.Printf("Warn: found unvalid line in hosts files: %q\n", line)
+			log.Printf("Warn: found unvalid line in hosts files: %q\n", line)
 			continue
 		}
 
@@ -87,7 +87,7 @@ func (h *HostsfilesProvider) loadFromDisk() {
 func (h *HostsfilesProvider) writeToDisk() {
 	file, err := os.Create(h.path)
 	if err != nil {
-		fmt.Printf("Warn: failed to open hosts file for writing: %v\n", err)
+		log.Printf("Warn: failed to open hosts file for writing: %v\n", err)
 		return
 	}
 	defer file.Close()
@@ -130,14 +130,14 @@ func (h *HostsfilesProvider) ApplyChanges(ctx context.Context, changes *plan.Cha
 	defer h.writeToDisk()
 
 	for _, toCreate := range changes.Create {
-		fmt.Printf("Creating endpoint %q\n", toCreate.String())
+		log.Printf("Creating endpoint %q\n", toCreate.String())
 
 		if len(toCreate.Targets) == 0 {
-			fmt.Printf("Endpoint contained no targets")
+			log.Printf("Endpoint contained no targets")
 			continue
 		}
 		if toCreate.RecordType != "A" {
-			fmt.Printf("Only A records are supported, received %q", toCreate.RecordType)
+			log.Printf("Only A records are supported, received %q", toCreate.RecordType)
 			continue
 		}
 
@@ -145,19 +145,19 @@ func (h *HostsfilesProvider) ApplyChanges(ctx context.Context, changes *plan.Cha
 	}
 
 	for _, toDelete := range changes.Delete {
-		fmt.Printf("Deleting endpoint %q\n", toDelete.String())
+		log.Printf("Deleting endpoint %q\n", toDelete.String())
 		h.removeByHost(toDelete.DNSName)
 	}
 
 	for i, old := range changes.UpdateOld {
-		fmt.Printf("Removing existing endpoint %d for update %q\n", i, old.String())
+		log.Printf("Removing existing endpoint %d for update %q\n", i, old.String())
 		h.removeByHost(old.DNSName)
 	}
 
 	for i, toUpdate := range changes.UpdateNew {
-		fmt.Printf("Updating endpoint %d for update %q\n", i, toUpdate.String())
+		log.Printf("Updating endpoint %d for update %q\n", i, toUpdate.String())
 		if toUpdate.RecordType != "A" {
-			fmt.Printf("Only A records are supported, received %q", toUpdate.RecordType)
+			log.Printf("Only A records are supported, received %q", toUpdate.RecordType)
 			continue
 		}
 
@@ -190,7 +190,7 @@ func main() {
 	flag.Parse()
 
 	if *hostsFileP == "" {
-		fmt.Printf("No hosts file path provided")
+		log.Printf("No hosts file path provided")
 		flag.Usage()
 		return
 	}
@@ -219,5 +219,6 @@ func main() {
 		log.Fatal(err)
 	}
 
+	fmt.Printf("Listening on %s for hostfile %s\n", l.Addr(), provider.path)
 	log.Fatal(s.Serve(l))
 }
