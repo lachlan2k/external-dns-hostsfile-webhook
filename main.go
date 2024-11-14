@@ -211,6 +211,6 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	fmt.Printf("Listening on :8080 for hostfile %s\n", provider.path)
-	log.Fatal(http.ListenAndServe(":8080", m))
+	fmt.Printf("Listening on :8888 for hostfile %s\n", provider.path)
+	log.Fatal(http.ListenAndServe(":8888", m))
 }
