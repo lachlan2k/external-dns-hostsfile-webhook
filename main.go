@@ -5,11 +5,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+	"net"
+	"net/http"
 	"os"
 	"slices"
 	"strings"
 	"sync"
-	"time"
 
 	"sigs.k8s.io/external-dns/endpoint"
 	"sigs.k8s.io/external-dns/plan"
@@ -134,6 +136,10 @@ func (h *HostsfilesProvider) ApplyChanges(ctx context.Context, changes *plan.Cha
 			fmt.Printf("Endpoint contained no targets")
 			continue
 		}
+		if toCreate.RecordType != "A" {
+			fmt.Printf("Only A records are supported, received %q", toCreate.RecordType)
+			continue
+		}
 
 		h.insert(toCreate.Targets[0], []string{toCreate.DNSName})
 	}
@@ -150,6 +156,11 @@ func (h *HostsfilesProvider) ApplyChanges(ctx context.Context, changes *plan.Cha
 
 	for i, toUpdate := range changes.UpdateNew {
 		fmt.Printf("Updating endpoint %d for update %q\n", i, toUpdate.String())
+		if toUpdate.RecordType != "A" {
+			fmt.Printf("Only A records are supported, received %q", toUpdate.RecordType)
+			continue
+		}
+
 		h.insert(toUpdate.Targets[0], []string{toUpdate.DNSName})
 	}
 	return nil
@@ -190,5 +201,23 @@ func main() {
 
 	provider.loadFromDisk()
 
-	api.StartHTTPApi(provider, nil, time.Second*10, time.Second*10, ":8888")
+	p := api.WebhookServer{
+		Provider: provider,
+	}
+	m := http.NewServeMux()
+	m.HandleFunc("/", p.NegotiateHandler)
+	m.HandleFunc("/records", p.RecordsHandler)
+	m.HandleFunc("/adjustendpoints", p.AdjustEndpointsHandler)
+	m.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	s := http.Server{Addr: ":8888", Handler: m}
+
+	l, err := net.Listen("tcp", ":8888")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Fatal(s.Serve(l))
 }
