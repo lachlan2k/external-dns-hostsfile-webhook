@@ -14,4 +14,4 @@ FROM redhat/ubi9-minimal AS runtime
 WORKDIR /app
 COPY --from=builder /app/main .
 
-ENTRYPOINT ["/app/main"]
+ENTRYPOINT ["/app/main", "-hosts-file", "/mnt/hosts"]
