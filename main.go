@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"slices"
@@ -212,13 +211,6 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	s := http.Server{Addr: ":8888", Handler: m}
-
-	l, err := net.Listen("tcp", ":8888")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Listening on %s for hostfile %s\n", l.Addr(), provider.path)
-	log.Fatal(s.Serve(l))
+	fmt.Printf("Listening on :8080 for hostfile %s\n", provider.path)
+	log.Fatal(http.ListenAndServe(":8080", m))
 }
