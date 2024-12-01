@@ -47,7 +47,7 @@ extraVolumes:
 serviceAccount:
   create: true
   name: "external-dns"
-``
+```
 
 ### Helm `values.yaml` for CoreDNS chart
 
