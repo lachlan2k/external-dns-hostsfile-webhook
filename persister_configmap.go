@@ -66,12 +66,14 @@ func (p *ConfigMapHostsfilePersister) Write(contents string) error {
 
 	_, err := p.configMapClient.Update(context.Background(), cm, metav1.UpdateOptions{})
 	if err != nil {
-		log.Printf("Warn: failed to update ConfigMap %s/%s: %v\nAttempting to create it instead\n", p.namespace, p.name, err)
+		log.Printf("Warn: failed to update ConfigMap %s/%s: %v\n", p.namespace, p.name, err)
+		log.Println("Attempting to create ConfigMap instead...")
 
 		_, err = p.configMapClient.Create(context.Background(), cm, metav1.CreateOptions{})
 		if err != nil {
 			return fmt.Errorf("couldn't update or create ConfigMap %s/%s: %v", p.namespace, p.name, err)
 		}
+		log.Printf("Created ConfigMap %s/%s successfully\n", p.namespace, p.name)
 	}
 
 	return nil
