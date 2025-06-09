@@ -12,7 +12,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-const configMapHostsfileName = "hostsfile"
+const configMapHostsfileName = "hosts"
 
 type ConfigMapHostsfilePersister struct {
 	namespace       string

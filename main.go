@@ -31,9 +31,10 @@ func main() {
 			log.Fatal("You must provide a namespace and name for the configmap when using the configmap backend")
 		}
 
-		persister = &ConfigMapHostsfilePersister{
-			namespace: *configMapNamespaceP,
-			name:      *configMapNameP,
+		var err error
+		persister, err = NewConfigMapHostsfilePersister(*configMapNamespaceP, *configMapNameP)
+		if err != nil {
+			log.Fatalf("Error creating ConfigMap persister: %v", err)
 		}
 	} else {
 		log.Fatalf("Unknown backend %s, supported backends are: disk, configmap", *backendP)
